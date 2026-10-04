@@ -368,9 +368,9 @@
         /* PDF / PRINT STYLES — FIXED                                   */
         /* ============================================================ */
 
-        /* Increased from 8mm → 12mm gives the border room to breathe  */
         @page {
-            margin: 12mm;
+            margin: 10mm;
+            size: A4;
         }
 
         @media print {
@@ -384,35 +384,25 @@
                 background: none;
             }
 
-            /*
-             * FIX: Inset the border 2 mm from every edge of the content
-             * area so it never coincides with the very bottom of the page
-             * where rows would otherwise spill past it.
-             */
             .print-border {
                 display: block;
                 position: fixed;
-                top: 2mm;
-                left: 2mm;
-                right: 2mm;
-                bottom: 2mm;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
                 border: 2px solid var(--primary);
-                opacity: 0.5;
+                opacity: 0.55;
                 box-sizing: border-box;
                 pointer-events: none;
                 z-index: 1000;
             }
 
-            /*
-             * FIX: Extra bottom padding stops the last visible row on
-             * each page from sitting right against the border edge.
-             */
             .container {
                 box-shadow: none;
                 border: none;
                 border-radius: 0;
-                padding: 10mm !important;
-                padding-bottom: 16mm !important;
+                padding: 14mm !important;
                 width: 100%;
                 max-width: 100%;
                 height: auto;
@@ -461,12 +451,6 @@
                 page-break-inside: auto;
             }
 
-            /*
-             * FIX: Add the modern break-inside property alongside the
-             * legacy page-break-inside. Chrome respects break-inside
-             * much more reliably, preventing rows from being split
-             * across pages and appearing outside the border.
-             */
             tr {
                 page-break-inside: avoid;
                 break-inside: avoid;
@@ -616,7 +600,7 @@
         </div>
         
         <div style="background: #f1f5f9; padding: 12px 16px; border-radius: 6px; border-left: 4px solid var(--accent);">
-            <p style="margin: 0; font-size: 13px; color: #1e293b;"><strong>ℹ️ Note:</strong></p>
+            <p style="margin: 0; font-size: 13px; color: #1e293b;"><strong>ℹ️️ Note:</strong></p>
         </div>
     </div>
 </div>
