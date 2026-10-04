@@ -364,9 +364,13 @@
             }
         }
 
-        /* PDF Printing Styles */
+        /* ============================================================ */
+        /* PDF / PRINT STYLES — FIXED                                   */
+        /* ============================================================ */
+
+        /* Increased from 8mm → 12mm gives the border room to breathe  */
         @page {
-            margin: 8mm;
+            margin: 12mm;
         }
 
         @media print {
@@ -375,18 +379,23 @@
                 padding: 0;
                 height: auto;
             }
-            
-            body { 
-                background: none; 
+
+            body {
+                background: none;
             }
 
+            /*
+             * FIX: Inset the border 2 mm from every edge of the content
+             * area so it never coincides with the very bottom of the page
+             * where rows would otherwise spill past it.
+             */
             .print-border {
                 display: block;
                 position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
+                top: 2mm;
+                left: 2mm;
+                right: 2mm;
+                bottom: 2mm;
                 border: 2px solid var(--primary);
                 opacity: 0.5;
                 box-sizing: border-box;
@@ -394,26 +403,33 @@
                 z-index: 1000;
             }
 
-            .container { 
-                box-shadow: none; 
+            /*
+             * FIX: Extra bottom padding stops the last visible row on
+             * each page from sitting right against the border edge.
+             */
+            .container {
+                box-shadow: none;
                 border: none;
                 border-radius: 0;
                 padding: 10mm !important;
-                width: 100%; 
+                padding-bottom: 16mm !important;
+                width: 100%;
                 max-width: 100%;
                 height: auto;
                 overflow: visible;
-                box-sizing: border-box; 
+                box-sizing: border-box;
             }
 
-            .nav-tabs, .search-select-section, .no-print, .btn-delete { 
-                display: none !important; 
+            .nav-tabs, .search-select-section, .no-print, .btn-delete {
+                display: none !important;
             }
-            input { 
-                border: none !important; 
-                background: transparent !important; 
-                padding: 0 !important; 
+
+            input {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
             }
+
             input[type="date"]::-webkit-calendar-picker-indicator {
                 display: none !important;
                 opacity: 0 !important;
@@ -423,9 +439,11 @@
                 position: absolute !important;
                 pointer-events: none !important;
             }
+
             .no-print-date {
                 display: none !important;
             }
+
             .print-date-text {
                 display: block !important;
                 font-size: 14px;
@@ -439,9 +457,29 @@
                 object-fit: contain !important;
             }
 
-            table { page-break-inside: auto; }
-            tr { page-break-inside: avoid; page-break-after: auto; }
-            thead { display: table-header-group; }
+            table {
+                page-break-inside: auto;
+            }
+
+            /*
+             * FIX: Add the modern break-inside property alongside the
+             * legacy page-break-inside. Chrome respects break-inside
+             * much more reliably, preventing rows from being split
+             * across pages and appearing outside the border.
+             */
+            tr {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                page-break-after: auto;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            tfoot {
+                display: table-footer-group;
+            }
         }
 
         .print-date-text {
@@ -587,10 +625,6 @@
     const defaultPlaceholder = "white.png";
 
     const defaultInventorySeed = [
-    
-    
-    
-       
   { id: 114, name: "0.8 mm Water Sleev", qty: 1, brand: "", img: "sleev.jpg" },
   { id: 113, name: "Flexi Raw DB 36 Way", qty: 1, brand: "Schneider", img: "a.jpg" },
   { id: 112, name: "Flexi Raw DB 56 Way", qty: 1, brand: "Schneider", img: "a.jpg" },
@@ -705,12 +739,6 @@
   { id: 3, name: "20 mm Electrical Conduit LMS - BLACK", qty: 1, brand: "Astral / Polycab", img: "pipe.jpg" },
   { id: 2, name: "20 mm Electrical Conduit MMS - IVORY", qty: 1, brand: "Astral / Polycab", img: "dv.png" },
   { id: 1, name: "20 mm Electrical Conduit LMS - IVORY", qty: 1, brand: "Astral / Polycab", img: "dv.png" }
-
-        
-        
-        
-        
-        
     ];
 
     let inventory = defaultInventorySeed.map(item => ({ ...item }));
@@ -753,15 +781,12 @@
     }
 
     function goToCatalogTab() {
-        // Catalog tab is hidden from menu but still functional via "Show All" button.
-        // We temporarily activate it without showing a nav button.
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('catalogTab').classList.add('active');
         updateCatalogBadges();
     }
 
-    /* Core Add to Estimate Function (Handles Deduplication) */
     function addItemToEstimate(itemName, explicitQty = null) {
         const item = inventory.find(i => i.name.toLowerCase() === itemName.toLowerCase());
         if (!item) return;
@@ -1026,7 +1051,6 @@
         });
     }
 
-    // ========== JSON FILE IMPORT ONLY ==========
     function externalJsonToInventory(jsonArray) {
         if (!Array.isArray(jsonArray)) throw new Error("JSON root must be an array");
         return jsonArray.map((entry, index) => {
@@ -1035,13 +1059,7 @@
             const qty = entry.quantity !== undefined ? entry.quantity : (entry.qty || 1);
             const img = entry.item_image_filename || entry.img || defaultPlaceholder;
             const id = entry.id !== undefined ? entry.id : index + 1;
-            return {
-                id: id,
-                name: name,
-                qty: qty,
-                brand: brand,
-                img: img
-            };
+            return { id, name, qty, brand, img };
         });
     }
 
@@ -1049,7 +1067,6 @@
         const file = event.target.files[0];
         if (!file) return;
 
-        // Reset status
         importStatus.className = 'import-status';
         importStatus.textContent = '';
         inventorySummary.textContent = '';
@@ -1062,19 +1079,15 @@
                 const newInventory = externalJsonToInventory(parsed);
                 inventory = newInventory;
 
-                // Re-render catalog
                 renderCatalogTable();
                 updateCatalogBadges();
 
-                // Show success
                 importStatus.className = 'import-status success';
                 importStatus.textContent = `✅ Successfully imported ${newInventory.length} items from "${file.name}".`;
 
-                // Update summary
                 const totalQty = newInventory.reduce((sum, i) => sum + (parseInt(i.qty) || 0), 0);
                 inventorySummary.innerHTML = `📦 <strong>${newInventory.length}</strong> unique items · Total default quantity: <strong>${totalQty}</strong>`;
 
-                // Reset search input to avoid stale results
                 document.getElementById('itemSearchInput').value = '';
                 document.getElementById('searchDropdown').classList.remove('show');
 
@@ -1089,14 +1102,12 @@
     }
 
     function updateImportSummary() {
-        // Show current inventory summary if no status is displayed
         if (!importStatus.textContent) {
             const totalQty = inventory.reduce((sum, i) => sum + (parseInt(i.qty) || 0), 0);
             inventorySummary.innerHTML = `Current inventory: <strong>${inventory.length}</strong> items · Total default quantity: <strong>${totalQty}</strong>`;
         }
     }
 
-    // Initialize
     renderCatalogTable();
     addNewRow();
     setupSearchDropdown();
@@ -1107,7 +1118,6 @@
 
     jsonFileInput.addEventListener('change', handleFileImport);
 
-    // Expose functions to global
     window.switchTab = switchTab;
     window.goToEstimateTab = goToEstimateTab;
     window.goToCatalogTab = goToCatalogTab;
